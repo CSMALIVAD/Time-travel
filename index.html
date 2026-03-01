@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Real Time Cosmic Clock</title>
+<style>
+    body {
+        margin: 0;
+        background: black;
+        color: white;
+        overflow: hidden;
+        font-family: Arial;
+        text-align: center;
+    }
+
+    #info {
+        position: absolute;
+        top: 10px;
+        width: 100%;
+        font-size: 18px;
+        line-height: 1.5;
+    }
+
+    canvas {
+        display: block;
+        margin: auto;
+    }
+</style>
+</head>
+<body>
+
+<div id="info">
+    <div id="date"></div>
+    <div id="clock"></div>
+    <div id="dayCounter"></div>
+</div>
+
+<canvas id="space"></canvas>
+
+<script>
+const canvas = document.getElementById("space");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
+// Orbit sizes
+const galaxyOrbit = 250;
+const earthOrbit = 120;
+const moonOrbit = 30;
+
+// 🔹 PERMANENT DAY 1 STORAGE
+if (!localStorage.getItem("startDate")) {
+    localStorage.setItem("startDate", new Date().toISOString());
+}
+
+const startDate = new Date(localStorage.getItem("startDate"));
+
+function updateClock() {
+    const now = new Date();
+
+    document.getElementById("date").innerHTML =
+        "Today's Date: " + now.toDateString();
+
+    document.getElementById("clock").innerHTML =
+        "Current Time: " + now.toLocaleTimeString();
+
+    const diffDays = Math.floor((now - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    document.getElementById("dayCounter").innerHTML =
+        "Day: " + diffDays + " (since " + startDate.toDateString() + ")";
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const now = new Date();
+    const seconds = now.getSeconds() + now.getMilliseconds()/1000;
+
+    // Milky Way Center
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 8, 0, Math.PI *
