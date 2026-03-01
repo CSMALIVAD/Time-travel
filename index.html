@@ -1,29 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Real Time Cosmic Clock</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosmic Real-Time Clock</title>
+
 <style>
     body {
         margin: 0;
         background: black;
         color: white;
+        font-family: Arial, sans-serif;
         overflow: hidden;
-        font-family: Arial;
-        text-align: center;
     }
 
     #info {
-        position: absolute;
-        top: 10px;
+        position: fixed;
+        top: 0;
         width: 100%;
-        font-size: 18px;
-        line-height: 1.5;
+        text-align: center;
+        padding: 10px;
+        background: rgba(0,0,0,0.6);
+        font-size: 14px;
+    }
+
+    @media (min-width: 768px) {
+        #info {
+            font-size: 18px;
+        }
     }
 
     canvas {
         display: block;
-        margin: auto;
     }
 </style>
 </head>
@@ -41,18 +49,19 @@
 const canvas = document.getElementById("space");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2;
+// Orbit scaling responsive
+function getScale() {
+    return Math.min(canvas.width, canvas.height) / 800;
+}
 
-// Orbit sizes
-const galaxyOrbit = 250;
-const earthOrbit = 120;
-const moonOrbit = 30;
-
-// 🔹 PERMANENT DAY 1 STORAGE
+// Permanent Day 1 storage
 if (!localStorage.getItem("startDate")) {
     localStorage.setItem("startDate", new Date().toISOString());
 }
@@ -63,10 +72,10 @@ function updateClock() {
     const now = new Date();
 
     document.getElementById("date").innerHTML =
-        "Today's Date: " + now.toDateString();
+        "Date: " + now.toDateString();
 
     document.getElementById("clock").innerHTML =
-        "Current Time: " + now.toLocaleTimeString();
+        "Time: " + now.toLocaleTimeString();
 
     const diffDays = Math.floor((now - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
@@ -77,9 +86,61 @@ function updateClock() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const scale = getScale();
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    const galaxyOrbit = 250 * scale;
+    const earthOrbit = 120 * scale;
+    const moonOrbit = 30 * scale;
+
     const now = new Date();
     const seconds = now.getSeconds() + now.getMilliseconds()/1000;
 
-    // Milky Way Center
+    // Milky Way center
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 8, 0, Math.PI *
+    ctx.arc(centerX, centerY, 6 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = "white";
+    ctx.fill();
+
+    // Sun orbiting galaxy
+    const sunAngle = seconds * (2 * Math.PI / 60);
+    const sunX = centerX + galaxyOrbit * Math.cos(sunAngle);
+    const sunY = centerY + galaxyOrbit * Math.sin(sunAngle);
+
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, 18 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = "orange";
+    ctx.fill();
+
+    // Earth orbiting sun
+    const earthAngle = seconds * (2 * Math.PI / 60);
+    const earthX = sunX + earthOrbit * Math.cos(earthAngle);
+    const earthY = sunY + earthOrbit * Math.sin(earthAngle);
+
+    ctx.beginPath();
+    ctx.arc(earthX, earthY, 8 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = "blue";
+    ctx.fill();
+
+    // Moon orbiting earth
+    const moonAngle = seconds * (2 * Math.PI / 10);
+    const moonX = earthX + moonOrbit * Math.cos(moonAngle);
+    const moonY = earthY + moonOrbit * Math.sin(moonAngle);
+
+    ctx.beginPath();
+    ctx.arc(moonX, moonY, 4 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = "gray";
+    ctx.fill();
+
+    requestAnimationFrame(draw);
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+draw();
+</script>
+
+</body>
+</html>
